@@ -32,21 +32,11 @@ jobs:
         working-directory: react-native-tabu
         run: npm install
 
-      - name: Expo Native Android Projesini Oluştur (Prebuild)
-        working-directory: react-native-tabu
-        run: npx expo prebuild --platform android --clean --no-install
-
-      - name: Release Signing Ayarla (Otomatik Debug İmzası)
-        working-directory: react-native-tabu/android/app
-        run: |
-          sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' build.gradle || true
-          sed -i 's/signingConfig = signingConfigs.release/signingConfig = signingConfigs.debug/g' build.gradle || true
-
       - name: Gradle ile APK Derle
         working-directory: react-native-tabu/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon || ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
       - name: APK Dosyasını İsimlendir ve Taşı
         run: |
