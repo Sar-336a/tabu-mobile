@@ -4,6 +4,7 @@
     "slug": "tabu-mobile-pro",
     "version": "1.0.0",
     "orientation": "portrait",
+    "newArchEnabled": false,
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {

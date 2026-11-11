@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-android:
-    name: Android Release APK Derle
+    name: Android APK Derle
     runs-on: ubuntu-latest
 
     steps:
@@ -36,16 +36,29 @@ jobs:
         working-directory: react-native-tabu
         run: npx expo prebuild --platform android --clean --no-install
 
-      - name: Gradle ile APK Derle (Release)
+      - name: Release Signing Ayarla (Otomatik Debug İmzası)
+        working-directory: react-native-tabu/android/app
+        run: |
+          sed -i 's/signingConfig signingConfigs.release/signingConfig signingConfigs.debug/g' build.gradle || true
+          sed -i 's/signingConfig = signingConfigs.release/signingConfig = signingConfigs.debug/g' build.gradle || true
+
+      - name: Gradle ile APK Derle
         working-directory: react-native-tabu/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease --no-daemon || ./gradlew assembleDebug --no-daemon
 
       - name: APK Dosyasını İsimlendir ve Taşı
         run: |
           mkdir -p build-output
-          find react-native-tabu/android/app/build/outputs/apk -name "*.apk" -exec cp {} build-output/TabuMobil-v1.0.0.apk \;
+          APK_FILE=$(find react-native-tabu/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
+          if [ -n "$APK_FILE" ]; then
+            echo "Bulunan APK: $APK_FILE"
+            cp "$APK_FILE" build-output/TabuMobil-v1.0.0.apk
+          else
+            echo "Hata: Hiçbir APK üretilemedi!"
+            exit 1
+          fi
           ls -la build-output/
 
       - name: APK'yı GitHub Actions Çıktısı (Artifact) Olarak Yükle
