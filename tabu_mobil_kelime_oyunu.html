@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tabu Mobil - Profesyonel Kelime Oyunu</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            purple: '#6C5CE7',
+                            pink: '#FD79A8',
+                            dark: '#0B0D1B',
+                            card: '#16192E',
+                            cardLight: '#212648',
+                            success: '#00B894',
+                            danger: '#D63031',
+                            warning: '#FDCB6E',
+                            teamA: '#38EF7D',
+                            teamB: '#FF7675'
+                        }
+                    },
+                    keyframes: {
+                        cardSlide: {
+                            '0%': { transform: 'scale(0.92) translateY(18px)', opacity: '0' },
+                            '100%': { transform: 'scale(1) translateY(0)', opacity: '1' }
+                        },
+                        popSuccess: {
+                            '0%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.06)' },
+                            '100%': { transform: 'scale(1)' }
+                        },
+                        shakeDanger: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '20%, 60%': { transform: 'translateX(-10px)' },
+                            '40%, 80%': { transform: 'translateX(10px)' }
+                        },
+                        deviceVibrate: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-4px) rotate(-0.5deg)' },
+                            '75%': { transform: 'translateX(4px) rotate(0.5deg)' }
+                        }
+                    },
+                    animation: {
+                        cardSlide: 'cardSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        popSuccess: 'popSuccess 0.22s ease-out',
+                        shakeDanger: 'shakeDanger 0.3s ease-in-out',
+                        deviceVibrate: 'deviceVibrate 0.15s ease-in-out'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+            box-sizing: border-box;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        body {
+            background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0a0a14 60%, #05050a 100%);
+            min-height: 100vh;
+        }
+
+        #phone-container {
+            width: 100%;
+            max-width: 440px;
+            height: 100vh;
+            background-color: #0B0D1B;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
+        }
+
+        @media (max-width: 640px) {
+            #phone-container {
+                max-width: 100% !important;
+                height: 100% !important;
+                box-shadow: none !important;
+            }
+        }
+
+        .card-draggable {
+            touch-action: none;
+            transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+            cursor: grab;
+        }
+        .card-draggable:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="h-full bg-brand-dark flex flex-col items-center justify-center text-slate-100 overflow-hidden selection:bg-brand-purple">
+
+    <!-- UYGULAMA ANA GÖVDESİ -->
+    <div id="phone-container" class="flex flex-col bg-brand-dark overflow-hidden">
+        
+        <!-- ÜST BAŞLIK -->
+        <header class="w-full px-4 py-2 flex items-center justify-between shrink-0 z-20 border-b border-slate-800/50">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-purple to-brand-pink flex items-center justify-center shadow-lg shadow-brand-purple/30">
+                    <i class="fa-solid fa-fire-flame-curved text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-brand-pink leading-tight">
+                        TABU <span class="text-[10px] px-1 py-0.5 rounded bg-brand-purple/40 text-brand-pink border border-brand-purple/30 font-bold ml-1">PRO</span>
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleAudio()" id="sound-btn" class="w-8 h-8 rounded-xl bg-brand-card border border-slate-700/60 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition-all" title="Sesi Aç/Kapat (M)">
+                    <i class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+                <button onclick="openRulesModal()" class="px-2.5 h-8 rounded-xl bg-brand-card border border-slate-700/60 flex items-center space-x-1.5 text-xs font-bold text-slate-300 hover:text-white active:scale-95 transition-all" title="Kurallar (R)">
+                    <i class="fa-solid fa-book-open text-brand-pink text-xs"></i>
+                    <span>Kurallar</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ANA OYUN KONTEYNERİ -->
+        <main class="w-full flex-1 flex flex-col p-3 relative overflow-hidden justify-between">
+
+            <!-- 1. GİRİŞ & AYARLAR EKRANI -->
+            <section id="screen-setup" class="flex-1 flex flex-col justify-between animate-cardSlide z-10 py-1">
+                <div class="text-center my-auto">
+                    <div class="inline-block p-3.5 rounded-3xl bg-brand-card/90 border border-slate-700/50 shadow-2xl mb-2 relative">
+                        <span class="text-4xl">🤫</span>
+                        <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-pink opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-brand-pink"></span>
+                        </span>
+                    </div>
+                    <h2 class="text-xl font-black text-white mb-0.5">Takımları Belirle</h2>
+                    <p class="text-[11px] text-slate-400 max-w-xs mx-auto">Hedef kelimeyi takımına anlat, yasaklı kelimeleri ağzına alma!</p>
+
+                    <!-- Takım İsimleri -->
+                    <div class="mt-4 space-y-2.5">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-emerald-400 font-black text-xs">A</span>
+                            <input id="teamA-input" type="text" value="Takım Alfa" maxlength="15" 
+                                   class="w-full pl-8 pr-3 py-2.5 rounded-2xl bg-brand-card border-2 border-emerald-500/40 focus:border-emerald-500 text-white font-bold text-xs outline-none transition-all shadow-inner">
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-rose-400 font-black text-xs">B</span>
+                            <input id="teamB-input" type="text" value="Takım Beta" maxlength="15" 
+                                   class="w-full pl-8 pr-3 py-2.5 rounded-2xl bg-brand-card border-2 border-rose-500/40 focus:border-rose-500 text-white font-bold text-xs outline-none transition-all shadow-inner">
+                        </div>
+                    </div>
+
+                    <!-- Parametreler -->
+                    <div class="mt-4 grid grid-cols-3 gap-2">
+                        <div class="bg-brand-card p-2 rounded-2xl border border-slate-700/60 flex flex-col items-center shadow-md">
+                            <span class="text-[9px] uppercase font-bold text-slate-400">Tur Süresi</span>
+                            <div class="flex items-center space-x-1 mt-1">
+                                <button onclick="adjustRoundTime(-15)" class="w-5 h-5 rounded bg-slate-800 text-slate-300 font-bold active:scale-90 flex items-center justify-center">-</button>
+                                <span id="label-round-time" class="font-extrabold text-xs text-brand-purple w-8 text-center">60s</span>
+                                <button onclick="adjustRoundTime(15)" class="w-5 h-5 rounded bg-slate-800 text-slate-300 font-bold active:scale-90 flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-brand-card p-2 rounded-2xl border border-slate-700/60 flex flex-col items-center shadow-md">
+                            <span class="text-[9px] uppercase font-bold text-slate-400">Pas Hakkı</span>
+                            <div class="flex items-center space-x-1 mt-1">
+                                <button onclick="adjustPassLimit(-1)" class="w-5 h-5 rounded bg-slate-800 text-slate-300 font-bold active:scale-90 flex items-center justify-center">-</button>
+                                <span id="label-pass-limit" class="font-extrabold text-xs text-brand-warning w-5 text-center">3</span>
+                                <button onclick="adjustPassLimit(1)" class="w-5 h-5 rounded bg-slate-800 text-slate-300 font-bold active:scale-90 flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-brand-card p-2 rounded-2xl border border-slate-700/60 flex flex-col items-center shadow-md">
+                            <span class="text-[9px] uppercase font-bold text-slate-400">Hedef Skor</span>
+                            <div class="flex items-center space-x-1 mt-1">
+                                <button onclick="adjustTargetScore(-5)" class="w-5 h-5 rounded bg-slate-800 text-slate-300 font-bold active:scale-90 flex items-center justify-center">-</button>
+                                <span id="label-target-score" class="font-extrabold text-xs text-cyan-400 w-5 text-center">25</span>
+                                <button onclick="adjustTargetScore(5)" class="w-5 h-5 rounded bg-slate-800 text-slate-300 font-bold active:scale-90 flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kelime Havuzu & Kart Ekleme Butonu -->
+                    <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400 px-1">
+                        <span id="deck-count-label"><i class="fa-solid fa-layer-group text-brand-pink mr-1"></i>80+ Kart</span>
+                        <button onclick="openCustomCardModal()" class="text-brand-pink hover:text-white font-bold flex items-center space-x-1 py-1 px-2.5 rounded-xl bg-brand-card border border-brand-purple/40 active:scale-95 transition-all">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>Kendi Kelimeni Ekle</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Başla Butonu -->
+                <button onclick="startNewGame()" 
+                        class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-brand-purple via-brand-pink to-brand-purple bg-[length:200%_auto] hover:bg-right font-black text-white text-sm tracking-wide uppercase shadow-lg shadow-brand-purple/40 active:scale-[0.98] transition-all flex items-center justify-center space-x-2">
+                    <span>Oyunu Başlat</span>
+                    <i class="fa-solid fa-play text-xs"></i>
+                </button>
+            </section>
+
+            <!-- 2. OYUN EKRANI -->
+            <section id="screen-game" class="hidden flex-1 flex flex-col justify-between">
+                
+                <!-- Bilgi Şeridi -->
+                <div class="shrink-0 space-y-1.5 mb-1">
+                    <div class="flex items-center justify-between bg-brand-card px-3 py-1.5 rounded-2xl border border-slate-800">
+                        <div class="flex items-center space-x-2">
+                            <span id="current-team-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm animate-pulse"></span>
+                            <span id="active-team-name" class="font-extrabold text-xs text-white truncate max-w-[120px]">Takım Alfa</span>
+                        </div>
+                        <div class="text-[11px] font-bold text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded-xl border border-slate-800">
+                            Tur: <span id="round-current-score" class="text-white font-black text-xs">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Sayaç, Duraklat Butonu ve Pas Durumu -->
+                    <div class="flex items-center justify-between space-x-2">
+                        <!-- Progress Bar & Süre -->
+                        <div class="flex-1 bg-brand-card p-1.5 rounded-2xl border border-slate-800 flex items-center space-x-2.5">
+                            <div class="relative w-8 h-8 shrink-0 flex items-center justify-center font-black text-sm" id="timer-box">
+                                <span id="timer-text" class="text-white">60</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                                    <div id="timer-progress" class="h-full bg-gradient-to-r from-brand-purple to-brand-pink transition-all duration-1000 w-full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Duraklat (Pause) Butonu -->
+                        <button onclick="togglePause()" id="btn-pause-round" class="w-9 h-9 rounded-2xl bg-brand-card border border-slate-800 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition-all" title="Oyunu Duraklat">
+                            <i class="fa-solid fa-pause text-xs" id="pause-icon"></i>
+                        </button>
+
+                        <!-- Pas Rozeti -->
+                        <div class="bg-brand-card px-2.5 py-1.5 rounded-2xl border border-slate-800 flex flex-col items-center justify-center min-w-[50px]">
+                            <span class="text-[8px] uppercase font-bold text-slate-400">Pas</span>
+                            <span id="pass-count-badge" class="font-black text-xs text-brand-warning">3/3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabu Kartı Alanı -->
+                <div class="flex-1 flex flex-col justify-center my-1 relative">
+                    <div id="tabu-card" class="card-draggable bg-gradient-to-b from-brand-card to-brand-cardLight border-2 border-slate-700/80 rounded-3xl p-3.5 shadow-2xl flex flex-col justify-between relative overflow-hidden select-none">
+                        
+                        <!-- Duraklatma (Pause) Katmanı -->
+                        <div id="pause-overlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md z-30 flex flex-col items-center justify-center p-4 text-center hidden">
+                            <span class="text-4xl mb-2">⏸️</span>
+                            <h4 class="text-base font-black text-white">OYUN DURAKLATILDI</h4>
+                            <p class="text-[11px] text-slate-400 mt-1">Kelimeler gizlendi. Devam etmek için butona dokunun.</p>
+                            <button onclick="togglePause()" class="mt-3 px-4 py-2 rounded-xl bg-brand-purple text-white font-extrabold text-xs shadow-lg active:scale-95 transition-all">
+                                Devam Et ▶
+                            </button>
+                        </div>
+
+                        <!-- Sürükleme İpuçları -->
+                        <div id="swipe-overlay-right" class="absolute inset-0 bg-emerald-600/30 flex items-center justify-center opacity-0 pointer-events-none transition-opacity">
+                            <span class="text-3xl font-black text-emerald-300 uppercase tracking-widest bg-emerald-950/80 px-4 py-2 rounded-2xl border border-emerald-500">DOĞRU (+1)</span>
+                        </div>
+                        <div id="swipe-overlay-left" class="absolute inset-0 bg-rose-600/30 flex items-center justify-center opacity-0 pointer-events-none transition-opacity">
+                            <span class="text-3xl font-black text-rose-300 uppercase tracking-widest bg-rose-950/80 px-4 py-2 rounded-2xl border border-rose-500">TABU (-1)</span>
+                        </div>
+
+                        <!-- Hedef Kelime -->
+                        <div class="text-center pb-2.5 border-b-2 border-dashed border-slate-700/70 relative">
+                            <span class="text-[9px] uppercase tracking-widest font-extrabold text-brand-pink block mb-0.5">Hedef Kelime</span>
+                            <h3 id="card-target-word" class="text-2xl font-black text-white tracking-wide uppercase drop-shadow-md">
+                                KÜTÜPHANE
+                            </h3>
+                        </div>
+
+                        <!-- Yasaklı Kelimeler -->
+                        <div class="py-2.5 flex-1 flex flex-col justify-center space-y-1.5">
+                            <div class="text-center">
+                                <span class="inline-flex items-center space-x-1 text-[9px] font-black uppercase tracking-wider text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20">
+                                    <i class="fa-solid fa-ban text-[8px]"></i>
+                                    <span>YASAKLI KELİMELER</span>
+                                </span>
+                            </div>
+
+                            <ul id="card-forbidden-words" class="space-y-1.5 mt-1">
+                                <li class="bg-slate-900/60 py-1.5 px-3 rounded-xl text-center font-bold text-slate-200 text-xs tracking-wide border border-slate-800/80">Kitap</li>
+                                <li class="bg-slate-900/60 py-1.5 px-3 rounded-xl text-center font-bold text-slate-200 text-xs tracking-wide border border-slate-800/80">Sessiz</li>
+                                <li class="bg-slate-900/60 py-1.5 px-3 rounded-xl text-center font-bold text-slate-200 text-xs tracking-wide border border-slate-800/80">Okumak</li>
+                                <li class="bg-slate-900/60 py-1.5 px-3 rounded-xl text-center font-bold text-slate-200 text-xs tracking-wide border border-slate-800/80">Ödünç</li>
+                                <li class="bg-slate-900/60 py-1.5 px-3 rounded-xl text-center font-bold text-slate-200 text-xs tracking-wide border border-slate-800/80">Raf</li>
+                            </ul>
+                        </div>
+
+                        <!-- Dipnot -->
+                        <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-[9px] text-slate-400 font-semibold">
+                            <span id="card-category-badge"><i class="fa-solid fa-tag mr-1"></i>Genel Kültür</span>
+                            <span id="card-number-badge">Kart #1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aksiyon Butonları -->
+                <div class="shrink-0 grid grid-cols-3 gap-2 pt-1.5">
+                    <button id="btn-pass" onclick="actionPass()" 
+                            class="h-14 rounded-2xl bg-slate-800/90 border border-amber-500/40 text-amber-300 flex flex-col items-center justify-center active:scale-95 transition-all shadow-md">
+                        <i class="fa-solid fa-forward-step text-base"></i>
+                        <span class="text-[10px] font-black uppercase mt-0.5">Pas (P / ↓)</span>
+                    </button>
+
+                    <button id="btn-tabu" onclick="actionTabu()" 
+                            class="h-14 rounded-2xl bg-gradient-to-br from-rose-600 to-rose-700 text-white flex flex-col items-center justify-center active:scale-95 transition-all shadow-lg shadow-rose-900/50">
+                        <i class="fa-solid fa-skull-crossbones text-lg animate-pulse"></i>
+                        <span class="text-[10px] font-black uppercase mt-0.5 tracking-wider">Tabu (T / ←)</span>
+                    </button>
+
+                    <button id="btn-correct" onclick="actionCorrect()" 
+                            class="h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex flex-col items-center justify-center active:scale-95 transition-all shadow-lg shadow-emerald-900/50">
+                        <i class="fa-solid fa-check text-xl font-black"></i>
+                        <span class="text-[10px] font-black uppercase mt-0.5 tracking-wider">Doğru (C / →)</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 3. TUR SONU VE SKOR EKRANI -->
+            <section id="screen-round-summary" class="hidden flex-1 flex flex-col justify-between animate-cardSlide py-1">
+                <div class="my-auto space-y-2.5">
+                    
+                    <div class="text-center">
+                        <span class="text-3xl">⏱️</span>
+                        <h2 class="text-xl font-black text-white mt-0.5">Süre Doldu!</h2>
+                        <p class="text-[11px] text-slate-400" id="summary-round-title">1. Tur Tamamlandı</p>
+                    </div>
+
+                    <!-- Skorboard -->
+                    <div class="bg-brand-card rounded-2xl p-3 border border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-800">
+                            <span>Takımlar</span>
+                            <span>Toplam Puan</span>
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                                <span id="summary-teamA-name" class="font-extrabold text-xs text-white">Takım Alfa</span>
+                            </div>
+                            <span id="summary-teamA-score" class="font-black text-base text-emerald-400">0</span>
+                        </div>
+
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/50 border border-slate-800/80">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                                <span id="summary-teamB-name" class="font-extrabold text-xs text-white">Takım Beta</span>
+                            </div>
+                            <span id="summary-teamB-score" class="font-black text-base text-rose-400">0</span>
+                        </div>
+                    </div>
+
+                    <!-- İstatistik -->
+                    <div class="bg-brand-card/60 p-2 rounded-2xl border border-slate-800 text-xs">
+                        <div class="flex justify-between items-center mb-1 px-1">
+                            <span class="font-extrabold text-slate-300 uppercase tracking-wider text-[10px]">Tur Özeti & İtiraz</span>
+                            <span class="text-[9px] text-slate-500 italic">Düzeltmek için kelimeye tıkla</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5 text-center">
+                            <div class="p-1.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                <div class="text-emerald-400 font-black text-sm" id="stat-correct">0</div>
+                                <div class="text-[9px] text-slate-400 font-bold uppercase">Doğru</div>
+                            </div>
+                            <div class="p-1.5 bg-rose-500/10 rounded-xl border border-rose-500/20">
+                                <div class="text-rose-400 font-black text-sm" id="stat-tabu">0</div>
+                                <div class="text-[9px] text-slate-400 font-bold uppercase">Tabu</div>
+                            </div>
+                            <div class="p-1.5 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                                <div class="text-amber-400 font-black text-sm" id="stat-pass">0</div>
+                                <div class="text-[9px] text-slate-400 font-bold uppercase">Pas</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Oynanan Kelimeler (İtiraz Edilebilir / Tıklanabilir) -->
+                    <div class="max-h-28 overflow-y-auto no-scrollbar space-y-1 p-0.5" id="round-words-list">
+                    </div>
+                </div>
+
+                <button onclick="startNextTurn()" id="btn-next-turn"
+                        class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 font-black text-white text-sm tracking-wide uppercase shadow-lg shadow-emerald-900/40 active:scale-[0.98] transition-all flex items-center justify-center space-x-2">
+                    <span id="next-turn-btn-label">Sıradaki Tura Başla</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </button>
+            </section>
+
+            <!-- 4. ŞAMPİYON EKRANI -->
+            <section id="screen-winner" class="hidden flex-1 flex flex-col justify-between animate-cardSlide text-center py-2">
+                <div class="my-auto space-y-3">
+                    <div class="relative inline-block">
+                        <span class="text-5xl animate-bounce">🏆</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black tracking-widest uppercase text-brand-pink">ŞAMPİYON</span>
+                        <h2 id="winner-team-name" class="text-2xl font-black text-white mt-0.5">Takım Alfa</h2>
+                        <p class="text-slate-400 text-xs mt-0.5" id="winner-score-diff">Hedef skora ilk onlar ulaştı!</p>
+                    </div>
+
+                    <div class="bg-brand-card p-3 rounded-2xl border border-slate-800 space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-300">
+                            <span id="final-teamA-name">Takım Alfa</span>
+                            <span id="final-teamA-score" class="font-black text-emerald-400 text-base">25 Puan</span>
+                        </div>
+                        <div class="h-px bg-slate-800"></div>
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-300">
+                            <span id="final-teamB-name">Takım Beta</span>
+                            <span id="final-teamB-score" class="font-black text-rose-400 text-base">18 Puan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="resetToSetup()" 
+                        class="w-full py-3.5 rounded-2xl bg-brand-purple hover:bg-brand-purple/90 font-black text-white text-sm tracking-wide uppercase shadow-lg shadow-brand-purple/40 active:scale-[0.98] transition-all">
+                    Yeniden Oyna
+                </button>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MASAÜSTÜ KLAVYE KISAYOLLARI REHBERİ -->
+    <footer id="desktop-hint-bar" class="w-full max-w-xl mx-auto mt-3 px-4 flex items-center justify-center space-x-3 text-[11px] text-slate-400 z-20">
+        <span class="flex items-center space-x-1">
+            <kbd class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-emerald-400 font-bold">Space / →</kbd>
+            <span>Doğru</span>
+        </span>
+        <span class="flex items-center space-x-1">
+            <kbd class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-rose-400 font-bold">← / Backspace</kbd>
+            <span>Tabu</span>
+        </span>
+        <span class="flex items-center space-x-1">
+            <kbd class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-400 font-bold">↓ / P</kbd>
+            <span>Pas</span>
+        </span>
+        <span class="flex items-center space-x-1">
+            <kbd class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-bold">M</kbd>
+            <span>Ses</span>
+        </span>
+    </footer>
+
+    <!-- KENDİ KARTINI EKLE MODALI -->
+    <div id="custom-card-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-brand-card border border-slate-700 w-full max-w-sm rounded-3xl flex flex-col overflow-hidden shadow-2xl animate-cardSlide">
+            <div class="p-3.5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-plus-circle text-brand-pink text-base"></i>
+                    <h3 class="font-black text-sm text-white">Yeni Tabu Kartı Ekle</h3>
+                </div>
+                <button onclick="closeCustomCardModal()" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-4 space-y-2.5 text-xs">
+                <div>
+                    <label class="block text-[10px] font-bold text-brand-pink uppercase mb-1">Hedef Kelime</label>
+                    <input id="custom-word-input" type="text" placeholder="Örn: KAPADOKYA" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-black uppercase outline-none focus:border-brand-purple">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Kategori</label>
+                    <input id="custom-category-input" type="text" placeholder="Örn: Seyahat / Coğrafya" class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-bold outline-none focus:border-brand-purple">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-rose-400 uppercase mb-1">5 Yasaklı Kelime</label>
+                    <div class="space-y-1.5">
+                        <input id="custom-forbid-1" type="text" placeholder="1. Yasaklı Kelime (Örn: Balon)" class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 outline-none">
+                        <input id="custom-forbid-2" type="text" placeholder="2. Yasaklı Kelime (Örn: Peri Bacası)" class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 outline-none">
+                        <input id="custom-forbid-3" type="text" placeholder="3. Yasaklı Kelime (Örn: Nevşehir)" class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 outline-none">
+                        <input id="custom-forbid-4" type="text" placeholder="4. Yasaklı Kelime (Örn: Turist)" class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 outline-none">
+                        <input id="custom-forbid-5" type="text" placeholder="5. Yasaklı Kelime (Örn: Mağara)" class="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 border-t border-slate-800">
+                <button onclick="saveCustomCard()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold text-xs uppercase shadow-md active:scale-95 transition-all">
+                    Kartı Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KURALLAR MODALI -->
+    <div id="rules-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-brand-card border border-slate-700 w-full max-w-sm max-h-[85vh] rounded-3xl flex flex-col overflow-hidden shadow-2xl animate-cardSlide">
+            <div class="p-3.5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-scale-balanced text-brand-pink text-base"></i>
+                    <h3 class="font-black text-sm text-white">Resmi Tabu Kuralları</h3>
+                </div>
+                <button onclick="closeRulesModal()" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="p-3.5 overflow-y-auto space-y-2.5 text-xs text-slate-300 leading-relaxed no-scrollbar">
+                <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="font-bold text-white text-xs mb-1 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-1 text-brand-purple"></i>
+                        <span>Oyunun Amacı</span>
+                    </div>
+                    <p>Hedef kelimeyi, altında listelenen <strong class="text-rose-400">5 yasaklı kelimeyi</strong> kullanmadan takım arkadaşlarınıza anlatın.</p>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="font-bold text-rose-400 text-xs mb-1 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-ban"></i>
+                        <span>Tabu Sayılan Haller (-1 Puan)</span>
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300 text-[11px]">
+                        <li>Hedef veya yasaklı kelimenin kökünü/türemişini kullanmak ("Futbol" yerine "Futbolcu").</li>
+                        <li>Baş harf veya kısaltma vermek ("T ile başlıyor").</li>
+                        <li>Yabancı dildeki karşılığını söylemek ("Araba" için "Car").</li>
+                        <li>El/kol jestleri ve mimiklerle çizim yapmak.</li>
+                        <li>Ses efekti ve hayvan taklidi yapmak ("Miyav", "Vın").</li>
+                    </ul>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <div class="font-bold text-emerald-400 text-xs mb-1 flex items-center space-x-1.5">
+                        <i class="fa-solid fa-star"></i>
+                        <span>Puanlama</span>
+                    </div>
+                    <p class="text-[11px]">Doğru: <strong class="text-emerald-400">+1 Puan</strong> | Tabu: <strong class="text-rose-400">-1 Puan</strong> | Pas: <strong class="text-amber-400">0 Puan</strong></p>
+                </div>
+            </div>
+
+            <div class="p-3 border-t border-slate-800 text-center">
+                <button onclick="closeRulesModal()" class="w-full py-2.5 rounded-xl bg-brand-purple text-white font-bold text-xs uppercase tracking-wide">
+                    Anladım, Kapat
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT OYUN MOTORU -->
+    <script>
+        const BASE_TABU_DECK = [
+            { word: "KÜTÜPHANE", category: "Kültür / Eğitim", forbidden: ["Kitap", "Sessiz", "Okumak", "Ödünç", "Raf"] },
+            { word: "ASTRONOT", category: "Bilim / Uzay", forbidden: ["Uzay", "Ay", "Roket", "Kıyafet", "NASA"] },
+            { word: "TAVLA", category: "Oyun / Eğlence", forbidden: ["Zar", "Pul", "Mars", "Kapı", "Düşeş"] },
+            { word: "DENİZALTI", category: "Askeri / Taşıt", forbidden: ["Su", "Gemi", "Periskop", "Batmak", "Torpido"] },
+            { word: "PİKNİK", category: "Sosyal Yaşam", forbidden: ["Mangal", "Örtü", "Çimen", "Sepet", "Hafta Sonu"] },
+            { word: "TRAFİK", category: "Günlük Hayat", forbidden: ["Araba", "Işık", "Sıkışık", "Polis", "Ceza"] },
+            { word: "FUTBOL", category: "Spor", forbidden: ["Top", "Gol", "Hakem", "Kale", "Ofsayt"] },
+            { word: "ŞEMSİYE", category: "Eşya", forbidden: ["Yağmur", "Islanmak", "Açmak", "Güneş", "Rüzgar"] },
+            { word: "SİNEMA", category: "Sanat", forbidden: ["Film", "Mısır", "Bilet", "Perde", "Salon"] },
+            { word: "GÜNEŞ GÖZLÜĞÜ", category: "Aksesuar", forbidden: ["Yaz", "Göz", "Plaj", "Koyu", "Işık"] },
+            { word: "BERBER", category: "Meslek", forbidden: ["Saç", "Makas", "Tıraş", "Sakal", "Ayna"] },
+            { word: "PİZZA", category: "Yemek", forbidden: ["İtalyan", "Dilim", "Peynir", "Hamur", "Sucuk"] },
+            { word: "PİYANO", category: "Müzik", forbidden: ["Tuş", "Siyah", "Beyaz", "Çalmak", "Kuyruklu"] },
+            { word: "DOKTOR", category: "Sağlık", forbidden: ["Hastane", "İlaç", "Muayene", "Stetoskop", "Reçete"] },
+            { word: "KUMANDAYI ARAMAK", category: "Ev Halleri", forbidden: ["Televizyon", "Koltuk", "Kanal", "Düğme", "Pil"] },
+            { word: "KAMERA", category: "Teknoloji", forbidden: ["Fotoğraf", "Video", "Çekim", "Lens", "Poz"] },
+            { word: "BUZDOLABI", category: "Beyaz Eşya", forbidden: ["Soğuk", "Mutfak", "Yiyecek", "Buzluk", "Kapak"] },
+            { word: "GÖKKUŞAĞI", category: "Doğa", forbidden: ["Renk", "Yağmur", "Güneş", "Yedi", "Gökyüzü"] },
+            { word: "HAVAALANI", category: "Ulaşım", forbidden: ["Uçak", "Pasaport", "Bavul", "Pist", "Terminal"] },
+            { word: "GİTAR", category: "Müzik", forbidden: ["Tel", "Akor", "Çalmak", "Akustik", "Pena"] },
+            { word: "ORMAN", category: "Coğrafya", forbidden: ["Ağaç", "Yeşil", "Hayvan", "Piknik", "Yaprak"] },
+            { word: "ÇÖL", category: "Coğrafya", forbidden: ["Kum", "Sıcak", "Deve", "Vaha", "Kaktüs"] },
+            { word: "HEMŞİRE", category: "Sağlık", forbidden: ["İğne", "Doktor", "Hastane", "Serum", "Beyaz"] },
+            { word: "ASANSÖR", category: "Yapı", forbidden: ["Kat", "Düğme", "Aşağı", "Yukarı", "Kabin"] },
+            { word: "TELEFON", category: "Teknoloji", forbidden: ["Aramak", "Alo", "Mesaj", "Şarj", "Ekran"] },
+            { word: "TİYATRO", category: "Sanat", forbidden: ["Sahne", "Oyuncu", "Perde", "Alkış", "Replik"] },
+            { word: "BALAYI", category: "Sosyal Yaşam", forbidden: ["Evlilik", "Düğün", "Tatil", "Otel", "Gelin"] },
+            { word: "KAHVE", category: "İçecek", forbidden: ["Fincan", "Türk", "Telvi", "Kafein", "Süt"] },
+            { word: "DÖNER", category: "Gıda", forbidden: ["Et", "Tavuk", "Dürüm", "Ayran", "Bıçak"] },
+            { word: "PENGUEN", category: "Canlılar", forbidden: ["Kutup", "Buz", "Uçamayan", "Kuş", "Siyah Beyaz"] },
+            { word: "GÜVERCİN", category: "Canlılar", forbidden: ["Barış", "Yem", "Mektup", "Kuş", "Uçmak"] },
+            { word: "HEYKEL", category: "Sanat", forbidden: ["Mermer", "Sanatçı", "Yontmak", "Büst", "Müze"] },
+            { word: "BALIK TUTMAK", category: "Hobi", forbidden: ["Olta", "Yem", "Deniz", "Kova", "İğne"] },
+            { word: "AYNA", category: "Eşya", forbidden: ["Cam", "Yansıma", "Kendin", "Bakmak", "Kırılmak"] },
+            { word: "SÜPERMAN", category: "Kurgu", forbidden: ["Pelerin", "Uçmak", "Kripton", "Kırmızı", "Güçlü"] },
+            { word: "REZERVASYON", category: "Hizmet", forbidden: ["Otel", "Masa", "Ayırtmak", "Restoran", "Yer"] },
+            { word: "YELPAZE", category: "Eşya", forbidden: ["Sıcak", "Rüzgar", "Sallamak", "Yaz", "Hava"] },
+            { word: "PARK", category: "Şehir", forbidden: ["Salıncak", "Kaydırak", "Çocuk", "Bank", "Yeşillik"] },
+            { word: "KARAOKE", category: "Eğlence", forbidden: ["Şarkı", "Mikrofon", "Söz", "Müzik", "Söylemek"] },
+            { word: "ÇAMAŞIR MAKİNESİ", category: "Ev Aleti", forbidden: ["Yıkamak", "Deterjan", "Kıyafet", "Sıkma", "Kazan"] },
+            { word: "ÇAY", category: "Gelenek", forbidden: ["İnce Belli", "Demlik", "Şeker", "Bardak", "Kahvaltı"] },
+            { word: "LAHMACUN", category: "Mutfak", forbidden: ["Kıymalı", "Fırın", "Limon", "Maydanoz", "Ayran"] },
+            { word: "NAZAR BONCUĞU", category: "Gelenek", forbidden: ["Mavi", "Göz", "Cam", "Kem", "Batıl"] },
+            { word: "METROBÜS", category: "Ulaşım", forbidden: ["İstanbul", "Kalabalık", "Şerit", "Durak", "Söğütlüçeşme"] },
+            { word: "İNTERNET", category: "Teknoloji", forbidden: ["Wifi", "Web", "Modem", "Bağlantı", "Site"] },
+            { word: "SELFIE", category: "Popüler Kültür", forbidden: ["Özçekim", "Telefon", "Fotoğraf", "Kamera", "Çubuk"] },
+            { word: "KANGURU", category: "Hayvanlar", forbidden: ["Avustralya", "Kese", "Zıplamak", "Yavru", "Kuyruk"] },
+            { word: "PİRAMİT", category: "Tarih", forbidden: ["Mısır", "Firavun", "Üçgen", "Mumya", "Giza"] },
+            { word: "DEPREM", category: "Doğa", forbidden: ["Fay", "Sallantı", "Şiddet", "Enkaz", "Artçı"] },
+            { word: "KASAP", category: "Meslek", forbidden: ["Et", "Kıyma", "Bıçak", "Biftek", "Tavuk"] },
+            { word: "TERZİ", category: "Meslek", forbidden: ["Dikiş", "İğne", "İplik", "Kumaş", "Paça"] },
+            { word: "HELİKOPTER", category: "Taşıt", forbidden: ["Pervane", "Uçmak", "Hava", "Pilot", "Dikey"] },
+            { word: "AKVARYUM", category: "Hobi", forbidden: ["Balık", "Cam", "Su", "Yem", "Fanus"] },
+            { word: "YOĞURT", category: "Gıda", forbidden: ["Süt", "Maya", "Ayran", "Kase", "Beyaz"] },
+            { word: "KAR TANESİ", category: "Doğa", forbidden: ["Kış", "Soğuk", "Beyaz", "Erimek", "Kristal"] },
+            { word: "DEDEKTİF", category: "Meslek", forbidden: ["Büyüteç", "Cinayet", "İpucu", "Polis", "Sherlock"] },
+            { word: "LUNAPARK", category: "Eğlence", forbidden: ["Dönme Dolap", "Çarpışan Oto", "Bilet", "Korku Tüneli", "Gondol"] },
+            { word: "GÖZLÜK", category: "Aksesuar", forbidden: ["Cam", "Çerçeve", "Miyop", "Burun", "Numara"] },
+            { word: "MİKROSKOP", category: "Bilim", forbidden: ["Hücre", "Büyütmek", "Bakteri", "Laboratuvar", "Mercek"] },
+            { word: "DİŞÇİ", category: "Sağlık", forbidden: ["Dolgu", "Çürük", "Koltuk", "Çekmek", "İğne"] },
+            { word: "HALTER", category: "Spor", forbidden: ["Ağırlık", "Kaldırmak", "Naim", "Bar", "Silkme"] },
+            { word: "TELSİZ", category: "Teknoloji", forbidden: ["Polis", "Kanal", "Bas Konuş", "Cızırtı", "Merkez"] },
+            { word: "YURT DIŞI", category: "Seyahat", forbidden: ["Pasaport", "Vize", "Uçak", "Sınır", "Yabancı"] },
+            { word: "ŞÖMİNE", category: "Ev", forbidden: ["Odun", "Ateş", "Kış", "Baca", "Duman"] },
+            { word: "KAHVALTI", category: "Gıda", forbidden: ["Sabah", "Yumurta", "Peynir", "Zeytin", "Çay"] },
+            { word: "ŞELALE", category: "Doğa", forbidden: ["Su", "Akmak", "Yüksek", "Dökülmek", "Manavgat"] },
+            { word: "MATEMATİK", category: "Ders", forbidden: ["Sayı", "Rakam", "Toplama", "Çarpma", "Problem"] },
+            { word: "VOLKAN", category: "Coğrafya", forbidden: ["Lav", "Yanardağ", "Püskürmek", "Krater", "Patlama"] },
+            { word: "BULUT", category: "Doğa", forbidden: ["Gökyüzü", "Beyaz", "Yağmur", "Pamuk", "Hava"] },
+            { word: "SÖZLÜK", category: "Kitap", forbidden: ["Kelime", "Anlam", "TDK", "Alfabe", "Bakmak"] },
+            { word: "AYAKKABI", category: "Giyim", forbidden: ["Bağcık", "Taban", "Topuk", "Giyinmek", "Spor"] },
+            { word: "HAPŞIRIK", category: "Biyoloji", forbidden: ["Çok Yaşa", "Burun", "Alerji", "Grip", "Mendil"] },
+            { word: "SAAT", category: "Eşya", forbidden: ["Zaman", "Akrep", "Yelkovan", "Kol", "Tik Tak"] },
+            { word: "BİSİKLET", category: "Spor / Taşıt", forbidden: ["Pedal", "Tekerlek", "Zincir", "Kask", "Gidon"] },
+            { word: "PİYANGO", category: "Şans", forbidden: ["Bilet", "Yılbaşı", "Büyük İkramiye", "Çekiliş", "Amorti"] },
+            { word: "BALON", category: "Eğlence", forbidden: ["Şişirmek", "Helyum", "Uçmak", "Patlamak", "Renkli"] },
+            { word: "DÜDÜK", category: "Alet", forbidden: ["Öttürmek", "Hakem", "Ses", "Polis", "Üflemek"] },
+            { word: "KORSAN", category: "Kurgu", forbidden: ["Gemi", "Kanca", "Göz Bandı", "Papağan", "Hazine"] },
+            { word: "LİMONATA", category: "İçecek", forbidden: ["Ekşi", "Sarı", "Buz", "Nane", "Şeker"] }
+        ];
+
+        // Yerel Hafızadan Kullanıcı Kartlarını Yükle
+        function loadCustomDeck() {
+            try {
+                const saved = localStorage.getItem('tabu_custom_cards');
+                if (saved) {
+                    const customCards = JSON.parse(saved);
+                    return [...BASE_TABU_DECK, ...customCards];
+                }
+            } catch(e) {}
+            return [...BASE_TABU_DECK];
+        }
+
+        let TABU_DECK = loadCustomDeck();
+
+        const gameState = {
+            teams: {
+                A: { name: "Takım Alfa", score: 0 },
+                B: { name: "Takım Beta", score: 0 }
+            },
+            currentTeam: 'A',
+            roundDuration: 60,
+            passLimit: 3,
+            targetScore: 25,
+            
+            remainingTime: 60,
+            remainingPasses: 3,
+            roundScore: 0,
+            timerInterval: null,
+            isAudioEnabled: true,
+            isSimulatorMode: true,
+            isPaused: false,
+
+            shuffledDeck: [],
+            currentCardIndex: 0,
+            
+            roundStats: {
+                correct: 0,
+                tabu: 0,
+                pass: 0,
+                history: []
+            }
+        };
+
+        // Ses Motoru
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioClass) audioCtx = new AudioClass();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+
+        window.addEventListener('pointerdown', () => getAudioContext(), { once: true });
+        window.addEventListener('keydown', () => getAudioContext(), { once: true });
+
+        function playTone(freq, type, duration, delay = 0) {
+            if (!gameState.isAudioEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                setTimeout(() => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + duration);
+                }, delay);
+            } catch (e) {}
+        }
+
+        function soundCorrect() {
+            playTone(523.25, 'sine', 0.1, 0);
+            playTone(659.25, 'sine', 0.12, 70);
+            playTone(783.99, 'sine', 0.22, 140);
+        }
+
+        function soundTabu() {
+            playTone(180, 'sawtooth', 0.18, 0);
+            playTone(120, 'sawtooth', 0.32, 130);
+        }
+
+        function soundPass() {
+            playTone(400, 'triangle', 0.08, 0);
+            playTone(320, 'triangle', 0.12, 60);
+        }
+
+        function soundTick() {
+            playTone(880, 'sine', 0.04, 0);
+        }
+
+        function soundEndRound() {
+            playTone(440, 'square', 0.18, 0);
+            playTone(330, 'square', 0.18, 160);
+            playTone(220, 'square', 0.35, 320);
+        }
+
+        function toggleAudio() {
+            gameState.isAudioEnabled = !gameState.isAudioEnabled;
+            const btn = document.getElementById('sound-btn');
+            const topBtn = document.getElementById('top-sound-btn');
+            if (gameState.isAudioEnabled) {
+                btn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>';
+                btn.classList.remove('text-rose-400');
+                if (topBtn) topBtn.innerHTML = '<i class="fa-solid fa-volume-high text-brand-purple"></i><span>Ses Açık</span>';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-volume-xmark text-xs"></i>';
+                btn.classList.add('text-rose-400');
+                if (topBtn) topBtn.innerHTML = '<i class="fa-solid fa-volume-xmark text-rose-400"></i><span>Sessiz</span>';
+            }
+        }
+
+        function toggleViewMode() {
+            const body = document.body;
+            const btnLabel = document.getElementById('view-mode-label');
+            if (body.classList.contains('simulator-mode')) {
+                body.classList.remove('simulator-mode');
+                btnLabel.innerText = "Geniş Ekran";
+            } else {
+                body.classList.add('simulator-mode');
+                btnLabel.innerText = "Telefon Çerçevesi";
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const el = document.getElementById('live-clock');
+            if (el) el.innerText = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function adjustRoundTime(delta) {
+            const newVal = gameState.roundDuration + delta;
+            if (newVal >= 30 && newVal <= 180) {
+                gameState.roundDuration = newVal;
+                document.getElementById('label-round-time').innerText = newVal + 's';
+            }
+        }
+
+        function adjustPassLimit(delta) {
+            const newVal = gameState.passLimit + delta;
+            if (newVal >= 1 && newVal <= 10) {
+                gameState.passLimit = newVal;
+                document.getElementById('label-pass-limit').innerText = newVal;
+            }
+        }
+
+        function adjustTargetScore(delta) {
+            const newVal = gameState.targetScore + delta;
+            if (newVal >= 10 && newVal <= 100) {
+                gameState.targetScore = newVal;
+                document.getElementById('label-target-score').innerText = newVal;
+            }
+        }
+
+        function startNewGame() {
+            getAudioContext();
+            TABU_DECK = loadCustomDeck();
+
+            const nameA = document.getElementById('teamA-input').value.trim() || "Takım Alfa";
+            const nameB = document.getElementById('teamB-input').value.trim() || "Takım Beta";
+            
+            gameState.teams.A = { name: nameA, score: 0 };
+            gameState.teams.B = { name: nameB, score: 0 };
+            gameState.currentTeam = 'A';
+            
+            gameState.shuffledDeck = shuffle(TABU_DECK);
+            gameState.currentCardIndex = 0;
+
+            setupTurnUI();
+        }
+
+        function setupTurnUI() {
+            hideAllScreens();
+            document.getElementById('screen-game').classList.remove('hidden');
+
+            const currentTeamObj = gameState.teams[gameState.currentTeam];
+            const activeTeamEl = document.getElementById('active-team-name');
+            const teamIndicator = document.getElementById('current-team-indicator');
+
+            activeTeamEl.innerText = currentTeamObj.name;
+            if (gameState.currentTeam === 'A') {
+                teamIndicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm animate-pulse";
+            } else {
+                teamIndicator.className = "w-2.5 h-2.5 rounded-full bg-rose-400 shadow-sm animate-pulse";
+            }
+
+            gameState.remainingTime = gameState.roundDuration;
+            gameState.remainingPasses = gameState.passLimit;
+            gameState.roundScore = 0;
+            gameState.roundStats = { correct: 0, tabu: 0, pass: 0, history: [] };
+            gameState.isPaused = false;
+            updatePauseUI();
+
+            updateScoreBadge();
+            updatePassUI();
+            updateTimerDisplay();
+
+            renderCurrentCard();
+            startTimer();
+        }
+
+        function renderCurrentCard() {
+            if (gameState.currentCardIndex >= gameState.shuffledDeck.length) {
+                gameState.shuffledDeck = shuffle(TABU_DECK);
+                gameState.currentCardIndex = 0;
+            }
+
+            const card = gameState.shuffledDeck[gameState.currentCardIndex];
+            const cardEl = document.getElementById('tabu-card');
+
+            cardEl.classList.remove('animate-cardSlide');
+            void cardEl.offsetWidth;
+            cardEl.classList.add('animate-cardSlide');
+
+            document.getElementById('card-target-word').innerText = card.word;
+            document.getElementById('card-category-badge').innerHTML = `<i class="fa-solid fa-tag mr-1"></i>${card.category}`;
+            document.getElementById('card-number-badge').innerText = `Kart #${gameState.currentCardIndex + 1}`;
+
+            const forbiddenContainer = document.getElementById('card-forbidden-words');
+            forbiddenContainer.innerHTML = '';
+
+            card.forbidden.forEach(word => {
+                const li = document.createElement('li');
+                li.className = "bg-slate-900/60 py-1.5 px-3 rounded-xl text-center font-bold text-slate-200 text-xs tracking-wide border border-slate-800/80";
+                li.innerText = word;
+                forbiddenContainer.appendChild(li);
+            });
+        }
+
+        function updateScoreBadge() {
+            document.getElementById('round-current-score').innerText = gameState.roundScore;
+        }
+
+        function updatePassUI() {
+            const passBadge = document.getElementById('pass-count-badge');
+            passBadge.innerText = `${gameState.remainingPasses}/${gameState.passLimit}`;
+            
+            const passBtn = document.getElementById('btn-pass');
+            if (gameState.remainingPasses <= 0) {
+                passBtn.disabled = true;
+                passBtn.classList.add('opacity-40', 'cursor-not-allowed');
+            } else {
+                passBtn.disabled = false;
+                passBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+            }
+        }
+
+        // Zamanlayıcı & Duraklatma (Pause)
+        function startTimer() {
+            clearInterval(gameState.timerInterval);
+
+            gameState.timerInterval = setInterval(() => {
+                if (gameState.isPaused) return;
+
+                gameState.remainingTime--;
+                updateTimerDisplay();
+
+                if (gameState.remainingTime <= 5 && gameState.remainingTime > 0) {
+                    soundTick();
+                }
+
+                if (gameState.remainingTime <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    finishRound();
+                }
+            }, 1000);
+        }
+
+        function togglePause() {
+            if (document.getElementById('screen-game').classList.contains('hidden')) return;
+            gameState.isPaused = !gameState.isPaused;
+            updatePauseUI();
+        }
+
+        function updatePauseUI() {
+            const overlay = document.getElementById('pause-overlay');
+            const pauseIcon = document.getElementById('pause-icon');
+            if (gameState.isPaused) {
+                overlay.classList.remove('hidden');
+                pauseIcon.className = "fa-solid fa-play text-xs text-emerald-400";
+            } else {
+                overlay.classList.add('hidden');
+                pauseIcon.className = "fa-solid fa-pause text-xs";
+            }
+        }
+
+        function updateTimerDisplay() {
+            const timeEl = document.getElementById('timer-text');
+            const progressEl = document.getElementById('timer-progress');
+            const total = gameState.roundDuration;
+            const rem = gameState.remainingTime;
+
+            timeEl.innerText = rem;
+            const percentage = (rem / total) * 100;
+            progressEl.style.width = `${Math.max(0, percentage)}%`;
+
+            if (rem <= 10) {
+                timeEl.className = "text-rose-400 font-black animate-pulse";
+                progressEl.className = "h-full bg-rose-500 transition-all duration-1000";
+            } else {
+                timeEl.className = "text-white font-black";
+                progressEl.className = "h-full bg-gradient-to-r from-brand-purple to-brand-pink transition-all duration-1000";
+            }
+        }
+
+        // Titreşim & Aksiyonlar
+        function triggerHaptic(type) {
+            const phone = document.getElementById('phone-container');
+            if (type === 'tabu') {
+                phone.classList.add('animate-deviceVibrate');
+                setTimeout(() => phone.classList.remove('animate-deviceVibrate'), 200);
+            }
+            if ('vibrate' in navigator) {
+                if (type === 'tabu') navigator.vibrate([100, 50, 100]);
+                else if (type === 'correct') navigator.vibrate(50);
+                else navigator.vibrate(25);
+            }
+        }
+
+        function actionCorrect() {
+            if (gameState.remainingTime <= 0 || gameState.isPaused || document.getElementById('screen-game').classList.contains('hidden')) return;
+            const currentCard = gameState.shuffledDeck[gameState.currentCardIndex];
+
+            soundCorrect();
+            triggerHaptic('correct');
+            gameState.roundScore += 1;
+            gameState.roundStats.correct++;
+            gameState.roundStats.history.push({ word: currentCard.word, status: 'correct' });
+
+            triggerCardEffect('popSuccess');
+            updateScoreBadge();
+            nextCard();
+        }
+
+        function actionTabu() {
+            if (gameState.remainingTime <= 0 || gameState.isPaused || document.getElementById('screen-game').classList.contains('hidden')) return;
+            const currentCard = gameState.shuffledDeck[gameState.currentCardIndex];
+
+            soundTabu();
+            triggerHaptic('tabu');
+            gameState.roundScore -= 1;
+            gameState.roundStats.tabu++;
+            gameState.roundStats.history.push({ word: currentCard.word, status: 'tabu' });
+
+            triggerCardEffect('shakeDanger');
+            updateScoreBadge();
+            nextCard();
+        }
+
+        function actionPass() {
+            if (gameState.remainingTime <= 0 || gameState.remainingPasses <= 0 || gameState.isPaused || document.getElementById('screen-game').classList.contains('hidden')) return;
+            const currentCard = gameState.shuffledDeck[gameState.currentCardIndex];
+
+            soundPass();
+            triggerHaptic('pass');
+            gameState.remainingPasses--;
+            gameState.roundStats.pass++;
+            gameState.roundStats.history.push({ word: currentCard.word, status: 'pass' });
+
+            updatePassUI();
+            nextCard();
+        }
+
+        function nextCard() {
+            gameState.currentCardIndex++;
+            renderCurrentCard();
+        }
+
+        function triggerCardEffect(animationName) {
+            const cardEl = document.getElementById('tabu-card');
+            cardEl.classList.remove('animate-popSuccess', 'animate-shakeDanger');
+            void cardEl.offsetWidth;
+            cardEl.classList.add(`animate-${animationName}`);
+            setTimeout(() => cardEl.classList.remove(`animate-${animationName}`), 350);
+        }
+
+        // Sürükle / Bırak
+        const cardElement = document.getElementById('tabu-card');
+        const overlayRight = document.getElementById('swipe-overlay-right');
+        const overlayLeft = document.getElementById('swipe-overlay-left');
+        let startX = 0, currentX = 0, isDragging = false;
+
+        function onDragStart(e) {
+            if (gameState.isPaused || document.getElementById('screen-game').classList.contains('hidden')) return;
+            isDragging = true;
+            startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            cardElement.style.transition = 'none';
+        }
+
+        function onDragMove(e) {
+            if (!isDragging) return;
+            currentX = (e.type.includes('touch') ? e.touches[0].clientX : e.clientX) - startX;
+            const rotate = currentX * 0.08;
+            cardElement.style.transform = `translateX(${currentX}px) rotate(${rotate}deg)`;
+
+            if (currentX > 30) {
+                overlayRight.style.opacity = Math.min(1, (currentX - 30) / 70);
+                overlayLeft.style.opacity = '0';
+            } else if (currentX < -30) {
+                overlayLeft.style.opacity = Math.min(1, (-currentX - 30) / 70);
+                overlayRight.style.opacity = '0';
+            } else {
+                overlayRight.style.opacity = '0';
+                overlayLeft.style.opacity = '0';
+            }
+        }
+
+        function onDragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            cardElement.style.transition = 'transform 0.2s ease-out';
+            overlayRight.style.opacity = '0';
+            overlayLeft.style.opacity = '0';
+
+            if (currentX > 90) actionCorrect();
+            else if (currentX < -90) actionTabu();
+            
+            cardElement.style.transform = '';
+            currentX = 0;
+        }
+
+        cardElement.addEventListener('mousedown', onDragStart);
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        cardElement.addEventListener('touchstart', onDragStart, { passive: true });
+        window.addEventListener('touchmove', onDragMove, { passive: true });
+        window.addEventListener('touchend', onDragEnd);
+
+        // Klavye Kısayolları
+        window.addEventListener('keydown', (e) => {
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+            const key = e.key.toLowerCase();
+            if (e.code === 'Space' || key === 'arrowright' || key === 'c') {
+                e.preventDefault();
+                actionCorrect();
+            } else if (key === 'arrowleft' || key === 'backspace' || key === 't' || key === 'x') {
+                e.preventDefault();
+                actionTabu();
+            } else if (key === 'arrowdown' || key === 'p') {
+                e.preventDefault();
+                actionPass();
+            } else if (key === ' ') {
+                if (gameState.isPaused) togglePause();
+            } else if (key === 'm') {
+                toggleAudio();
+            } else if (key === 'r') {
+                const modal = document.getElementById('rules-modal');
+                if (modal.classList.contains('hidden')) openRulesModal();
+                else closeRulesModal();
+            }
+        });
+
+        // Tur Bitişi & Skor Yönetimi
+        function finishRound() {
+            soundEndRound();
+
+            const team = gameState.teams[gameState.currentTeam];
+            team.score = Math.max(0, team.score + gameState.roundScore);
+
+            if (team.score >= gameState.targetScore) {
+                showWinnerScreen();
+                return;
+            }
+
+            hideAllScreens();
+            const summaryScreen = document.getElementById('screen-round-summary');
+            summaryScreen.classList.remove('hidden');
+
+            renderSummaryStats();
+        }
+
+        function renderSummaryStats() {
+            const team = gameState.teams[gameState.currentTeam];
+            document.getElementById('summary-round-title').innerText = `${team.name} Turu Tamamladı`;
+            document.getElementById('summary-teamA-name').innerText = gameState.teams.A.name;
+            document.getElementById('summary-teamA-score').innerText = gameState.teams.A.score;
+            document.getElementById('summary-teamB-name').innerText = gameState.teams.B.name;
+            document.getElementById('summary-teamB-score').innerText = gameState.teams.B.score;
+
+            document.getElementById('stat-correct').innerText = gameState.roundStats.correct;
+            document.getElementById('stat-tabu').innerText = gameState.roundStats.tabu;
+            document.getElementById('stat-pass').innerText = gameState.roundStats.pass;
+
+            renderRoundWordsList();
+
+            const nextTeamKey = gameState.currentTeam === 'A' ? 'B' : 'A';
+            const nextTeamObj = gameState.teams[nextTeamKey];
+            document.getElementById('next-turn-btn-label').innerText = `${nextTeamObj.name} Başlasın`;
+        }
+
+        // Kelime Listesi & Puan İtiraz / Düzeltme
+        function renderRoundWordsList() {
+            const wordsListEl = document.getElementById('round-words-list');
+            wordsListEl.innerHTML = '';
+            
+            if (gameState.roundStats.history.length === 0) {
+                wordsListEl.innerHTML = '<p class="text-center text-slate-500 text-[11px] italic py-2">Bu turda kelime oynanmadı.</p>';
+            } else {
+                gameState.roundStats.history.forEach((item, index) => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between px-2.5 py-1 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] cursor-pointer hover:border-slate-700 transition-all select-none";
+                    row.title = "Durumu değiştirmek için tıklayın (+1 Doğru, -1 Tabu, 0 Pas)";
+                    row.onclick = () => cycleWordStatus(index);
+
+                    let badge = '';
+                    if (item.status === 'correct') {
+                        badge = '<span class="text-emerald-400 font-extrabold flex items-center space-x-1"><i class="fa-solid fa-check text-[9px]"></i><span>+1 Doğru</span></span>';
+                    } else if (item.status === 'tabu') {
+                        badge = '<span class="text-rose-400 font-extrabold flex items-center space-x-1"><i class="fa-solid fa-skull text-[9px]"></i><span>-1 Tabu</span></span>';
+                    } else {
+                        badge = '<span class="text-amber-400 font-extrabold flex items-center space-x-1"><i class="fa-solid fa-forward text-[9px]"></i><span>0 Pas</span></span>';
+                    }
+
+                    row.innerHTML = `<span class="font-bold text-slate-200">${item.word}</span>${badge}`;
+                    wordsListEl.appendChild(row);
+                });
+            }
+        }
+
+        // İtiraz / Düzeltme: Durumu değiştir ve puanları yeniden hesapla
+        function cycleWordStatus(index) {
+            const item = gameState.roundStats.history[index];
+            const team = gameState.teams[gameState.currentTeam];
+
+            // Önceki puan etkisini geri al
+            if (item.status === 'correct') {
+                gameState.roundScore -= 1;
+                team.score = Math.max(0, team.score - 1);
+                gameState.roundStats.correct--;
+                item.status = 'tabu';
+                gameState.roundScore -= 1;
+                team.score = Math.max(0, team.score - 1);
+                gameState.roundStats.tabu++;
+            } else if (item.status === 'tabu') {
+                gameState.roundScore += 1;
+                team.score += 1;
+                gameState.roundStats.tabu--;
+                item.status = 'pass';
+                gameState.roundStats.pass++;
+            } else {
+                gameState.roundStats.pass--;
+                item.status = 'correct';
+                gameState.roundScore += 1;
+                team.score += 1;
+                gameState.roundStats.correct++;
+            }
+
+            renderSummaryStats();
+        }
+
+        function startNextTurn() {
+            gameState.currentTeam = gameState.currentTeam === 'A' ? 'B' : 'A';
+            setupTurnUI();
+        }
+
+        function showWinnerScreen() {
+            hideAllScreens();
+            document.getElementById('screen-winner').classList.remove('hidden');
+
+            const winnerTeam = gameState.teams[gameState.currentTeam];
+            document.getElementById('winner-team-name').innerText = winnerTeam.name;
+
+            document.getElementById('final-teamA-name').innerText = gameState.teams.A.name;
+            document.getElementById('final-teamA-score').innerText = `${gameState.teams.A.score} Puan`;
+
+            document.getElementById('final-teamB-name').innerText = gameState.teams.B.name;
+            document.getElementById('final-teamB-score').innerText = `${gameState.teams.B.score} Puan`;
+
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+
+        function resetToSetup() {
+            clearInterval(gameState.timerInterval);
+            hideAllScreens();
+            document.getElementById('screen-setup').classList.remove('hidden');
+        }
+
+        function hideAllScreens() {
+            document.getElementById('screen-setup').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-round-summary').classList.add('hidden');
+            document.getElementById('screen-winner').classList.add('hidden');
+        }
+
+        // Kendi Kartını Ekleme Mantığı
+        function openCustomCardModal() {
+            document.getElementById('custom-card-modal').classList.remove('hidden');
+        }
+
+        function closeCustomCardModal() {
+            document.getElementById('custom-card-modal').classList.add('hidden');
+        }
+
+        function saveCustomCard() {
+            const word = document.getElementById('custom-word-input').value.trim();
+            const category = document.getElementById('custom-category-input').value.trim() || "Özel Kart";
+            const forbidden = [
+                document.getElementById('custom-forbid-1').value.trim(),
+                document.getElementById('custom-forbid-2').value.trim(),
+                document.getElementById('custom-forbid-3').value.trim(),
+                document.getElementById('custom-forbid-4').value.trim(),
+                document.getElementById('custom-forbid-5').value.trim()
+            ].filter(w => w.length > 0);
+
+            if (!word) {
+                alert("Lütfen bir hedef kelime yazın!");
+                return;
+            }
+            if (forbidden.length < 3) {
+                alert("Lütfen en az 3 yasaklı kelime yazın!");
+                return;
+            }
+
+            const newCard = { word: word.toUpperCase(), category, forbidden };
+
+            try {
+                const existing = JSON.parse(localStorage.getItem('tabu_custom_cards') || '[]');
+                existing.push(newCard);
+                localStorage.setItem('tabu_custom_cards', JSON.stringify(existing));
+                TABU_DECK = loadCustomDeck();
+                document.getElementById('deck-count-label').innerHTML = `<i class="fa-solid fa-layer-group text-brand-pink mr-1"></i>${TABU_DECK.length} Kart`;
+                
+                alert(`"${newCard.word}" kartı başarıyla eklendi!`);
+                closeCustomCardModal();
+                
+                // Formu temizle
+                document.getElementById('custom-word-input').value = '';
+                document.getElementById('custom-category-input').value = '';
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`custom-forbid-${i}`).value = '';
+                }
+            } catch(e) {
+                alert("Kart kaydedilirken bir hata oluştu.");
+            }
+        }
+
+        // Kurallar Modalı
+        function openRulesModal() {
+            document.getElementById('rules-modal').classList.remove('hidden');
+        }
+
+        function closeRulesModal() {
+            document.getElementById('rules-modal').classList.add('hidden');
+        }
+
+        window.addEventListener('click', (e) => {
+            const rulesModal = document.getElementById('rules-modal');
+            const customModal = document.getElementById('custom-card-modal');
+            if (e.target === rulesModal) closeRulesModal();
+            if (e.target === customModal) closeCustomCardModal();
+        });
+    </script>
+</body>
+</html>

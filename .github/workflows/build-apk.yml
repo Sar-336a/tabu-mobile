@@ -1,0 +1,69 @@
+name: Tabu Mobil APK Derleme
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Android Release APK Derle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu Klonla (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Node.js 20 Kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Java 17 Kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Android SDK Kur
+        uses: android-actions/setup-android@v3
+
+      - name: NPM Paketlerini Yükle
+        working-directory: react-native-tabu
+        run: npm install
+
+      - name: Expo Native Android Projesini Oluştur (Prebuild)
+        working-directory: react-native-tabu
+        run: npx expo prebuild --platform android --clean
+
+      - name: Gradle ile APK Derle (Release)
+        working-directory: react-native-tabu/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: APK Dosyasını İsimlendir ve Taşı
+        run: |
+          mkdir -p build-output
+          cp react-native-tabu/android/app/build/outputs/apk/release/*.apk build-output/TabuMobil-v1.0.0.apk || cp react-native-tabu/android/app/build/outputs/apk/release/*-unsigned.apk build-output/TabuMobil-v1.0.0.apk
+
+      - name: APK'yı GitHub Actions Çıktısı (Artifact) Olarak Yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: TabuMobil-v1.0.0-APK
+          path: build-output/TabuMobil-v1.0.0.apk
+
+      - name: GitHub Release Olarak Yayınla
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.0
+          name: "Tabu Mobil Pro v1.0.0 (APK)"
+          body: |
+            ### 📱 Tabu Mobil Pro - Android APK İndir
+            Bu APK dosyası GitHub Actions tarafından otomatik olarak derlenmiştir.
+            
+            1. Aşağıdaki **TabuMobil-v1.0.0.apk** dosyasına tıklayıp telefonunuza indirin.
+            2. Telefonunuzda indirdiğiniz APK'ya dokunup kurulumu tamamlayın.
+            3. Keyifli oyunlar!
+          files: build-output/TabuMobil-v1.0.0.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

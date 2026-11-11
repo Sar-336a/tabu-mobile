@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Tabu Mobil Pro",
+    "slug": "tabu-mobile-pro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0B0D1B"
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.sar336a.tabumobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0D1B"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
