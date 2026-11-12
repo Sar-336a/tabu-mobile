@@ -53,6 +53,8 @@ jobs:
             tail -n 40 gradle_build.log
             FAILED_TASKS=$(grep "FAILED" gradle_build.log | head -n 5 | tr '\n' ' ' | tr -d '"')
             echo "::error title=FailedTasks::$FAILED_TASKS"
+            COMPILER_ERR=$(grep -E "(e: |error: )" gradle_build.log | head -n 10 | tr '\n' ' ' | tr -d '"')
+            echo "::error title=CompilerErr::$COMPILER_ERR"
             WHAT_WRONG=$(grep -A 8 "What went wrong:" gradle_build.log | head -n 8 | tr '\n' ' ' | tr -d '"')
             echo "::error title=WhatWentWrong::$WHAT_WRONG"
             exit 1
