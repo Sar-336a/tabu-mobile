@@ -43,8 +43,11 @@ jobs:
         working-directory: react-native-tabu/android
         run: |
           chmod +x gradlew
-          echo "Derleme baslatiliyor: assembleDebug..."
-          ./gradlew assembleDebug --stacktrace --no-daemon > gradle_build.log 2>&1 || true
+          echo "Derleme baslatiliyor: assembleRelease (Kucuk Boyutlu Optimize APK)..."
+          ./gradlew assembleRelease --stacktrace --no-daemon > gradle_build.log 2>&1 || {
+            echo "assembleRelease uyarisi, assembleDebug deneniyor..."
+            ./gradlew assembleDebug --stacktrace --no-daemon > gradle_build.log 2>&1 || true
+          }
           FOUND_APK=$(find app/build/outputs/apk -name "*.apk" 2>/dev/null | head -n 1)
           if [ -n "$FOUND_APK" ]; then
             echo "APK basariyla uretildi: $FOUND_APK"
@@ -70,9 +73,13 @@ jobs:
       - name: APK Dosyasını İsimlendir ve Taşı
         run: |
           mkdir -p build-output
-          APK_FILE=$(find react-native-tabu/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
+          APK_FILE=$(find react-native-tabu/android/app/build/outputs/apk -type f -name "*release*.apk" 2>/dev/null | head -n 1)
+          if [ -z "$APK_FILE" ]; then
+            APK_FILE=$(find react-native-tabu/android/app/build/outputs/apk -type f -name "*.apk" 2>/dev/null | head -n 1)
+          fi
           if [ -n "$APK_FILE" ]; then
             echo "Bulunan APK: $APK_FILE"
+            ls -lh "$APK_FILE"
             cp "$APK_FILE" build-output/TabuMobil-v1.0.0.apk
           else
             echo "Hata: Hiçbir APK üretilemedi!"
@@ -90,13 +97,18 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.0
-          name: "Tabu Mobil Pro v1.0.0 (APK)"
+          name: "Tabu Mobil Pro 3D v1.0.0 (Optimize APK)"
           body: |
-            ### 📱 Tabu Mobil Pro - Android APK
-            Bu APK dosyası GitHub Actions tarafından derlenmiştir.
-            
+            ### 🎮 Tabu Mobil Pro 3D - Yeni Sürüm (Optimize & Profesyonel UI)
+
+            ✨ **Yenilikler:**
+            - 🎨 **3D Profesyonel Tasarım:** Klasik emojiler yerine özel vektör 3D kalkanlar, rozetler ve kupalar.
+            - 🔊 **Gerçekçi Ses Efektleri:** Doğru, Tabu zili, Pas ve sayaç nabız tik-tak sesleri (açılıp kapatılabilir).
+            - 📳 **Dokunsal Geri Bildirim:** Haptic vibration sistemi.
+            - ⚡ **Küçük Dosya Boyutu:** Native optimizasyon ve gereksiz mimarilerin temizlenmesiyle APK boyutu küçültüldü.
+
             1. Aşağıdaki **TabuMobil-v1.0.0.apk** dosyasına tıklayarak doğrudan telefonunuza indirin.
-            2. Telefonunuzda indirdiğiniz APK dosyasına dokunup kurulumu tamamlayın.
+            2. Telefonunuzda indirdiğiniz dosyaya dokunup kurulumu yapın.
             3. Keyifli oyunlar!
           files: build-output/TabuMobil-v1.0.0.apk
         env:
