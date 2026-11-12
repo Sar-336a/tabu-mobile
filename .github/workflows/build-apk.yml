@@ -32,15 +32,19 @@ jobs:
         working-directory: react-native-tabu
         run: npm install
 
+      - name: JavaScript Paketini Derle (Pre-bundle JS)
+        working-directory: react-native-tabu
+        run: |
+          mkdir -p android/app/src/main/assets
+          npx expo export:embed --entry-file index.js --platform android --dev false --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res/
+          ls -la android/app/src/main/assets/
+
       - name: Gradle ile APK Derle
         working-directory: react-native-tabu/android
         run: |
           chmod +x gradlew
-          echo "Derleme baslatiliyor: assembleRelease..."
-          ./gradlew assembleRelease --stacktrace --no-daemon || {
-            echo "assembleRelease basarisiz oldu, bundle iceren assembleDebug deneniyor..."
-            ./gradlew assembleDebug -DbundleInDebug=true --stacktrace --no-daemon
-          }
+          echo "Derleme baslatiliyor: assembleDebug..."
+          ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: APK Dosyasını İsimlendir ve Taşı
         run: |
