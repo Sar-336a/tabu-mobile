@@ -51,8 +51,10 @@ jobs:
           else
             echo "HATA: APK uretilemedi!"
             tail -n 40 gradle_build.log
-            ERR=$(tail -n 20 gradle_build.log | tr '\n' ' ' | tr -d '"')
-            echo "::error title=GradleFail::$ERR"
+            FAILED_TASKS=$(grep "FAILED" gradle_build.log | head -n 5 | tr '\n' ' ' | tr -d '"')
+            echo "::error title=FailedTasks::$FAILED_TASKS"
+            WHAT_WRONG=$(grep -A 8 "What went wrong:" gradle_build.log | head -n 8 | tr '\n' ' ' | tr -d '"')
+            echo "::error title=WhatWentWrong::$WHAT_WRONG"
             exit 1
           fi
 
