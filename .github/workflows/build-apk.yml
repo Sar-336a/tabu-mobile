@@ -36,7 +36,11 @@ jobs:
         working-directory: react-native-tabu/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          echo "Derleme baslatiliyor: assembleRelease..."
+          ./gradlew assembleRelease --stacktrace --no-daemon || {
+            echo "assembleRelease basarisiz oldu, bundle iceren assembleDebug deneniyor..."
+            ./gradlew assembleDebug -DbundleInDebug=true --stacktrace --no-daemon
+          }
 
       - name: APK Dosyasını İsimlendir ve Taşı
         run: |

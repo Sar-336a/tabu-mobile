@@ -1,0 +1,17 @@
+{
+  "name": "Tabu Mobil Pro",
+  "short_name": "Tabu Pro",
+  "start_url": "./tabu_mobil_kelime_oyunu.html",
+  "display": "standalone",
+  "background_color": "#0B0D1B",
+  "theme_color": "#6C5CE7",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./react-native-tabu/assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

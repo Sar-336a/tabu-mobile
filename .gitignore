@@ -12,3 +12,6 @@ web-build/
 .env*
 .DS_Store
 *.log
+.gradle_home/
+test.bundle
+test_assets/
