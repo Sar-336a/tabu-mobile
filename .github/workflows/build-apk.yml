@@ -102,10 +102,11 @@ jobs:
             ### 🎮 Tabu Mobil Pro 3D - Yeni Sürüm (Optimize & Profesyonel UI)
 
             ✨ **Yenilikler:**
+            - 🖼️ **Özel 3D Uygulama İkonu:** Parlayan neon kart destesi, 3D alev amblemi ve modern tipografi.
             - 🎨 **3D Profesyonel Tasarım:** Klasik emojiler yerine özel vektör 3D kalkanlar, rozetler ve kupalar.
             - 🔊 **Gerçekçi Ses Efektleri:** Doğru, Tabu zili, Pas ve sayaç nabız tik-tak sesleri (açılıp kapatılabilir).
             - 📳 **Dokunsal Geri Bildirim:** Haptic vibration sistemi.
-            - ⚡ **Küçük Dosya Boyutu:** Native optimizasyon ve gereksiz mimarilerin temizlenmesiyle APK boyutu küçültüldü.
+            - ⚡ **Küçük Dosya Boyutu:** Native optimizasyon ve gereksiz mimarilerin temizlenmesiyle APK boyutu ~117MB'dan ~58MB'a indirildi.
 
             1. Aşağıdaki **TabuMobil-v1.0.0.apk** dosyasına tıklayarak doğrudan telefonunuza indirin.
             2. Telefonunuzda indirdiğiniz dosyaya dokunup kurulumu yapın.
