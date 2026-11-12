@@ -352,3 +352,67 @@ export const ForbiddenChipIcon: React.FC<{ size?: number }> = ({ size = 16 }) =>
     <Path d="M5 15L15 5" stroke="#FF4757" strokeWidth="2" strokeLinecap="round" />
   </Svg>
 );
+
+// 12. 3D Anlatıcı (Mic) Simgesi
+export const MicIcon3D: React.FC<{ size?: number; color?: string }> = ({ size = 20, color = '#00DFD8' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24">
+    <Defs>
+      <LinearGradient id="micGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <Stop offset="0%" stopColor="#FFFFFF" />
+        <Stop offset="100%" stopColor={color} />
+      </LinearGradient>
+    </Defs>
+    <Rect x="9" y="2" width="6" height="12" rx="3" fill="url(#micGrad)" />
+    <Path d="M5 10V11C5 14.87 8.13 18 12 18C15.87 18 19 14.87 19 11V10" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    <Path d="M12 18V22M8 22H16" stroke={color} strokeWidth="2" strokeLinecap="round" />
+  </Svg>
+);
+
+// 13. 3D Denetçi / Gözlemci (Eye) Simgesi
+export const EyeIcon3D: React.FC<{ size?: number; color?: string }> = ({ size = 20, color = '#FF7675' }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24">
+    <Defs>
+      <LinearGradient id="eyeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#FFFFFF" />
+        <Stop offset="100%" stopColor={color} />
+      </LinearGradient>
+    </Defs>
+    <Path
+      d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z"
+      stroke={color}
+      strokeWidth="2"
+      fill="none"
+      strokeLinejoin="round"
+    />
+    <Circle cx="12" cy="12" r="4" fill="url(#eyeGrad)" />
+    <Circle cx="13" cy="11" r="1.5" fill="#13172E" />
+  </Svg>
+);
+
+// 14. 3D Duraklatma (Pause) / Devam Et (Play) Simgesi
+export const PausePlayIcon3D: React.FC<{ isPaused: boolean; size?: number }> = ({ isPaused, size = 20 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24">
+    {isPaused ? (
+      <Polygon points="7,4 20,12 7,20" fill="#00DFD8" />
+    ) : (
+      <>
+        <Rect x="6" y="4" width="4" height="16" rx="2" fill="#FFA502" />
+        <Rect x="14" y="4" width="4" height="16" rx="2" fill="#FFA502" />
+      </>
+    )}
+  </Svg>
+);
+
+// 15. 3D Sıra Değişimi (Handover / Swap) Simgesi
+export const HandoverIcon3D: React.FC<{ size?: number }> = ({ size = 32 }) => (
+  <Svg width={size} height={size} viewBox="0 0 32 32">
+    <Defs>
+      <LinearGradient id="swapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <Stop offset="0%" stopColor="#00DFD8" />
+        <Stop offset="100%" stopColor="#FD79A8" />
+      </LinearGradient>
+    </Defs>
+    <Path d="M4 11H24M24 11L18 5M24 11L18 17" stroke="url(#swapGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M28 21H8M8 21L14 15M8 21L14 27" stroke="url(#swapGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
